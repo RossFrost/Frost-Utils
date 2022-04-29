@@ -1,3 +1,5 @@
+
+//syntax: [[element, {attribute: value], ...]
 function create_elements(elements, location = "none") {
     for (var element of elements) {
         var created_element = document.createElement(element[0])

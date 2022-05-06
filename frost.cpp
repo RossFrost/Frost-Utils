@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -29,19 +30,21 @@ void DATA_STREAM(string file) {
 	vector<string> props {
 		"defaults",
 		"properties",
-		"$"
+		"$",
 	};
 
 	vector<string> commands {
 		"#override",
 		"!",
-		"print -> "
+		"print -> ",
 	};
 
 	vector<string> lineTypes{
 		"header",
 		"property",
 		"command",
+		"custom_header",
+
 	};
 
 	vector<map<string, string>> output;
@@ -60,6 +63,8 @@ void DATA_STREAM(string file) {
 				case '{': processed.insert(pair<int, char>(index, line[index]));
 				case '}': processed.insert(pair<int, char>(index, line[index]));
 				case ':': processed.insert(pair<int, char>(index, line[index]));
+				case ';': processed.insert(pair<int, char>(index, line[index]));
+				case '$': processed.insert(pair<int, char>(index, line[index]));
 				default: break;
 				};
 
@@ -68,23 +73,32 @@ void DATA_STREAM(string file) {
 				++index;
 			}
 
+			int lineTypeIndex = 0;
 			vector<char> charArray;
+			string charArrayOut;
+			map<string, string> charOut;
+
 			for (map<int, char>::iterator charIndex = processed.begin(); charIndex != processed.end(); ++charIndex) {
 				if (charIndex->second == '{') {
+					if (line[charIndex->first + 1] == '$') {
+						lineTypeIndex = 3;
+					} 
+
 					for (int character = charIndex->first + 1; line[character] != '}'; ++character) {
 						charArray.emplace_back(line[character]);
 					}
-				}
 
-				string charArrayOut;
-				for (char character : charArray) {
-					charArrayOut.push_back(character);
-				}
+					for (char character : charArray) {
+						charArrayOut.push_back(character);
+					}
 
-				//header
-				map<string, string> charOut;
-				charOut.insert(pair<string, string>(lineTypes[0], charArrayOut));
-				output.push_back(charOut);
+					charOut.insert(pair<string, string>(lineTypes[lineTypeIndex], charArrayOut));
+					output.push_back(charOut);
+					cout << charArrayOut + "\n";
+
+					lineTypeIndex = 0;
+
+				}
 			}
 		}
 
@@ -93,7 +107,7 @@ void DATA_STREAM(string file) {
 
 	}
 
-	for (int vectorMapIndex = 0; vectorMapIndex != output.size() - 1; ++vectorMapIndex) {
+	for (int vectorMapIndex = 0; vectorMapIndex != output.size(); ++vectorMapIndex) {
 		for (map<string, string>::iterator mapIndex = output[vectorMapIndex].begin(); mapIndex != output[vectorMapIndex].end(); ++mapIndex) {
 			cout << mapIndex->first;
 		}

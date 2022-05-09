@@ -1,3 +1,5 @@
+//make sure your compiler set C++20
+//setup a .frost file to experiment with it
 #include <iostream>
 #include <map>
 #include <string>

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <regex>
 
 
 using std::map;
@@ -21,6 +22,7 @@ using std::basic_ifstream;
 using std::ostringstream;
 using std::pair;
 using std::find;
+using std::regex_match;
 
 
 void DATA_STREAM(string file) {
@@ -57,39 +59,32 @@ void DATA_STREAM(string file) {
 			map<int, char> processed;
 
 			int index = 0;
+			cout << line;
 			for (string::iterator character = line.begin(); character != line.end(); ++character) {
-
-				switch (line[index]) {
-				case '{': processed.insert(pair<int, char>(index, line[index]));
-				case '}': processed.insert(pair<int, char>(index, line[index]));
-				case ':': processed.insert(pair<int, char>(index, line[index]));
-				case ';': processed.insert(pair<int, char>(index, line[index]));
-				case '$': processed.insert(pair<int, char>(index, line[index]));
-				default: break;
-				};
-
-				if (line[index] == ':') { break; }
-
+				cout << line[index];
+				processed.insert(pair<int, char>(index, line[index]));
 				++index;
-			}
+			};
+
+			
 
 			int lineTypeIndex = 0;
-			vector<char> charArray;
 			string charArrayOut;
 			map<string, string> charOut;
 
+
+
 			for (map<int, char>::iterator charIndex = processed.begin(); charIndex != processed.end(); ++charIndex) {
-				if (charIndex->second == '{') {
+
+				switch (charIndex->second) {
+
+				case '{':
 					if (line[charIndex->first + 1] == '$') {
 						lineTypeIndex = 3;
-					} 
-
-					for (int character = charIndex->first + 1; line[character] != '}'; ++character) {
-						charArray.emplace_back(line[character]);
 					}
 
-					for (char character : charArray) {
-						charArrayOut.push_back(character);
+					for (int character = charIndex->first + 1; line[character] != '}'; ++character) {
+						charArrayOut.push_back(line[character]);
 					}
 
 					charOut.insert(pair<string, string>(lineTypes[lineTypeIndex], charArrayOut));
@@ -97,6 +92,13 @@ void DATA_STREAM(string file) {
 					cout << charArrayOut + "\n";
 
 					lineTypeIndex = 0;
+					break;
+				
+				case 'a':
+					lineTypeIndex = 1;
+					charOut.insert(pair<string, string>(lineTypes[lineTypeIndex], charArrayOut));
+					output.push_back(charOut);
+					cout << charArrayOut + "\n";
 
 				}
 			}

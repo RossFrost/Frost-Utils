@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include <regex>
 
 
 using std::map;
@@ -22,7 +21,8 @@ using std::basic_ifstream;
 using std::ostringstream;
 using std::pair;
 using std::find;
-using std::regex_match;
+using std::distance;
+
 
 
 void DATA_STREAM(string file) {
@@ -54,69 +54,38 @@ void DATA_STREAM(string file) {
 		cout << file << " is open \n";
 
 		string line;
+		int iteration = 0;
 
+		map<int, vector<string>> lineProcessor;
+	
 		while (getline(stream, line)) {
-			map<int, char> processed;
-
-			int index = 0;
-			cout << line;
-			for (string::iterator character = line.begin(); character != line.end(); ++character) {
-				cout << line[index];
-				processed.insert(pair<int, char>(index, line[index]));
-				++index;
-			};
-
+			vector<string> lineData;
+			string lineCharacterString;
 			
 
-			int lineTypeIndex = 0;
-			string charArrayOut;
-			map<string, string> charOut;
 
+			if (line.find('{') != string::npos && line.find('}') != string::npos && line.find(':') != string::npos)  {
+				int begin = line.find('{');
+				int end = line.find('}');
+				int dist = end - begin;
 
-
-			for (map<int, char>::iterator charIndex = processed.begin(); charIndex != processed.end(); ++charIndex) {
-
-				switch (charIndex->second) {
-
-				case '{':
-					if (line[charIndex->first + 1] == '$') {
-						lineTypeIndex = 3;
-					}
-
-					for (int character = charIndex->first + 1; line[character] != '}'; ++character) {
-						charArrayOut.push_back(line[character]);
-					}
-
-					charOut.insert(pair<string, string>(lineTypes[lineTypeIndex], charArrayOut));
-					output.push_back(charOut);
-					cout << charArrayOut + "\n";
-
-					lineTypeIndex = 0;
-					break;
-				
-				case 'a':
-					lineTypeIndex = 1;
-					charOut.insert(pair<string, string>(lineTypes[lineTypeIndex], charArrayOut));
-					output.push_back(charOut);
-					cout << charArrayOut + "\n";
-
+				for (int character = begin + 1; character != end; ++character) {
+					lineCharacterString.push_back(line[character]);
 				}
+
+				cout << lineCharacterString << "\n";
+				lineData.push_back("header");
+				lineData.push_back(line);
+				lineProcessor.insert(pair<int, vector<string>>(iteration, lineData));
 			}
-		}
-
-
-		stream.close();
-
-	}
-
-	for (int vectorMapIndex = 0; vectorMapIndex != output.size(); ++vectorMapIndex) {
-		for (map<string, string>::iterator mapIndex = output[vectorMapIndex].begin(); mapIndex != output[vectorMapIndex].end(); ++mapIndex) {
-			cout << mapIndex->first;
+				
+			++iteration;
 		}
 	}
 
+	stream.close();
+};
 
-}
 
 
 vector<string> GET_FILES() {
@@ -125,8 +94,9 @@ vector<string> GET_FILES() {
 
 	for (auto const& entry : recursive_directory_iterator{ mainDirectoryPath }) {	
 		if (entry.path().extension() == ".frost") {
-			files.push_back(entry.path().string());}};
-
+			files.push_back(entry.path().string());
+		}
+	};
 	return files;
 }			
 

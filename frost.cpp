@@ -1,11 +1,13 @@
 //make sure your compiler set C++20
 //setup a .frost file to experiment with it
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
 #include <sstream>
-#include <filesystem>
+
 
 
 using std::map;
@@ -26,6 +28,66 @@ using std::distance;
 
 
 
+struct lineProcessor {
+	map<int, vector<string>> outdata;
+};
+
+
+void returnValues(vector<string> data, int iteration) {
+	lineProcessor lineProcessor;
+	lineProcessor.outdata.insert(pair(iteration, data));
+
+}
+
+
+int isHeader(string line, int iteration) {
+	int begin = static_cast<int>(line.find('{'));
+	int end = static_cast<int>(line.find('}'));
+	int dist = static_cast<int>(end - begin);
+	string lineCharacterString;
+
+	for (int character = begin + 1; character != end; ++character) {
+		if (line[character] == ' ') { continue; }
+		lineCharacterString.push_back(line[character]);
+	}
+
+	returnValues({"header", lineCharacterString}, iteration);
+
+	cout << "header: " + lineCharacterString + "\n";
+	return ++iteration;
+}
+
+
+int isProperty(string line, int iteration) {
+	int equalSign = static_cast<int>(line.find('='));
+	string name;
+	string value;
+
+	if (equalSign != string::npos) {
+
+		for (int character = 0; character != equalSign; ++character) {
+			if (line[character] == ' ') { continue; }
+			name.push_back(line[character]);
+		}
+
+		cout << "name: " + name + "\n";
+
+		for (int character = equalSign + 1; character != line.size(); ++character ) {
+			if (line[character] == ' ') { continue; }
+			value.push_back(line[character]);
+		}
+
+		cout << "value: " + value + "\n";
+
+	}
+
+	returnValues({ "property", name, value}, iteration);
+	return ++iteration;
+}
+
+
+
+
 void DATA_STREAM(string file) {
 	ifstream stream;
 	stream.open(file);
@@ -39,57 +101,37 @@ void DATA_STREAM(string file) {
 		map<int, vector<string>> lineProcessor;
 		bool gate = false;
 
-
-
-	
-
 		while (getline(stream, line)) {
 			cout << iteration << "\n";
-			vector<string> lineData;
-			string lineCharacterString;
-
-
-			auto returnValues = [&](int iterate, vector<string> values) {
-				lineProcessor.insert(pair<int, vector<string>>(iterate, values));
-				++iteration;
-			};
-
-
-			auto isHeader = [&]() {
-				size_t begin = line.find('{');
-				size_t end = line.find('}');
-				int dist = end - begin;
-
-				for (int character = begin + 1; character != end; ++character) {
-					lineCharacterString.push_back(line[character]);
-				}
-
-				returnValues(iteration, { "header", lineCharacterString });
-
-				cout << lineCharacterString << "\n";
-				gate = true;
-			};
-
-
 
 			if (line.find('{') != string::npos && line.find('}') != string::npos && line.find(':') != string::npos) {
-				isHeader();
+				iteration = isHeader(line, iteration);
+				gate = true;
 				continue;
 			}
 
 			if (gate == true) {
-				if (line.find('{') != string::npos && line.find('}') != string::npos) {
-					gate = false;
-					++iteration;
+				if (line.find('{') != string::npos && line.find('}') != string::npos && line.find(':') != string::npos) {
+					gate = false; 
+					iteration = isHeader(line, iteration); 
 					continue;
 				}
-				cout << line << ": property" << "\n";
+
+				iteration = isProperty(line, iteration);
+				continue;
 			}
 			++iteration;
 		}
 	}
 	stream.close();
 };
+
+
+auto out(lineProcessor output) {
+	
+}
+
+
 
 
 
